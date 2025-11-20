@@ -105,5 +105,3 @@ docker-compose down -v
 └── alert.rules.yml                     # Regras de alerta do Prometheus
 ```
 
----
-*README gerado por Manus AI*
