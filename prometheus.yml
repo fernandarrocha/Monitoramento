@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 5s # Coleta métricas a cada 5 segundos
+  evaluation_interval: 5s # Avalia regras a cada 5 segundos
+
+# Regras de alerta
+rule_files:
+  - 'alert.rules.yml'
+
+scrape_configs:
+  # Job para o próprio Prometheus
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Job para o PedidoService
+  - job_name: 'pedido-service'
+    metrics_path: '/actuator/prometheus'
+    # O nome do serviço no docker-compose é 'app'
+    static_configs:
+      - targets: ['app:8080']

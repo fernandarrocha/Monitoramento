@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # Aplicação Spring Boot
+  app:
+    container_name: pedido-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    # Necessário para que o Prometheus no Docker possa acessar a aplicação
+    # O Prometheus irá usar o nome do serviço 'app' para se conectar
+    # O Spring Boot Actuator expõe as métricas em /actuator/prometheus
+    networks:
+      - monitor-net
+
+  # Servidor Prometheus
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./alert.rules.yml:/etc/prometheus/alert.rules.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--enable-feature=promql-at-modifier'
+    depends_on:
+      - app
+    networks:
+      - monitor-net
+
+  # Servidor Grafana
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      # Persistência de dados do Grafana
+      - grafana-storage:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - monitor-net
+
+networks:
+  monitor-net:
+    driver: bridge
+
+volumes:
+  grafana-storage:

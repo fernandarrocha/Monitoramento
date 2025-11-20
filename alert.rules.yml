@@ -1,0 +1,20 @@
+groups:
+- name: PedidoServiceAlerts
+  rules:
+  - alert: HighErrorRate
+    expr: rate(http_server_requests_seconds_count{status="5xx"}[1m]) > 0.05
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Taxa de erro HTTP 5xx alta no PedidoService"
+      description: "Mais de 5% de erros 5xx detectados no último minuto."
+
+  - alert: HighLatency
+    expr: histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{uri="/pedidos"}[5m])) by (le)) > 1
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Latência alta no endpoint /pedidos"
+      description: "O 95º percentil da latência do endpoint /pedidos está acima de 1 segundo."
